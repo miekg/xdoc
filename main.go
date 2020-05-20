@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/url"
 
 	gu "github.com/miekg/xdoc/gitlabutil"
-	"github.com/xanzy/go-gitlab"
 )
 
 const DocDir = "xdoc"
@@ -18,23 +18,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for i := range groups {
-		fmt.Printf("%d %s %+v\n", groups[i].ID, groups[i].Name, groups[i].Projects)
-		printProj(cl, groups[i].ID)
-		sub, err := gu.ListSubgroups(cl, groups[i].ID)
-		if err != nil {
-			log.Fatal(err)
-		}
-		for j := range sub {
-			fmt.Printf("    %d %s\n", sub[j].ID, sub[j].Name)
-			printProj(cl, sub[j].ID)
-		}
+	if len(groups) == 0 {
+		log.Fatal("No groups found")
 	}
-}
 
-func printProj(cl *gitlab.Client, gid int) {
-	proj, _ := gu.ListProjects(cl, gid)
-	for i := range proj {
-		fmt.Println("-- " + proj[i].Name + ": " + proj[i].WebURL)
+	gid := groups[0].ID
+	proj, err := gu.ListProjects(cl, gid)
+	if err != nil {
+		log.Fatal(err)
 	}
+	println(proj[0].WebURL)
+	url, _ := url.Parse(proj[0].WebURL)
+	println(url.Path)
+	println(len(proj), "found")
+	files, _ := gu.ListDir(cl, proj[0].ID, "docs")
+	fmt.Printf("%+v\n", files)
 }
