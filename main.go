@@ -8,7 +8,7 @@ import (
 	gu "github.com/miekg/xdoc/gitlabutil"
 )
 
-const DocDir = "xdoc"
+const DocDir = "docs"
 
 func main() {
 	base := "https://gitlab.gnome.org"
@@ -31,6 +31,6 @@ func main() {
 	url, _ := url.Parse(proj[0].WebURL)
 	println(url.Path)
 	println(len(proj), "found")
-	files, _ := gu.ListDir(cl, proj[0].ID, "docs")
+	files, _ := gu.ListDir(cl, proj[0].ID, DocDir)
 	fmt.Printf("%+v\n", files)
 }
