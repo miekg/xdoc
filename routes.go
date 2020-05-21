@@ -4,10 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/xanzy/go-gitlab"
 )
 
-func setup() {
+func (d *Doc) setup() {
 	r := mux.NewRouter()
 
 	//
@@ -34,8 +33,4 @@ func setup() {
 		// vars := mux.Vars(r)
 		// render file from the docs dir
 	})
-}
-
-func render(w http.ResponseWriter, r *http.Request, proj *gitlab.Project, filename string) {
-
 }
