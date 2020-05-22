@@ -14,9 +14,7 @@ import (
 )
 
 func (d *Doc) render(w http.ResponseWriter, r *http.Request, proj GitLab, pathname string) {
-	abspath := d.FullPath(proj, pathname)
-
-	renderer, doc, err := newRendererMmark(abspath)
+	renderer, doc, err := newRendererMmark(pathname)
 	if err != nil {
 		// write error to w
 		return
@@ -46,7 +44,7 @@ func newRendererMmark(pathname string) (markdown.Renderer, ast.Node, error) {
 	mparser.AddIndex(doc)
 
 	mhtmlOpts := mhtml.RendererOptions{
-		Language: lang.New("en"),
+		Language: lang.New("en"), // TODO(miek): should come from xdoc.yaml.
 	}
 	opts := html.RendererOptions{
 		Comments:       [][]byte{[]byte("//"), []byte("#")},

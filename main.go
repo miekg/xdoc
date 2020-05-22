@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net/url"
 
+	"github.com/miekg/xdoc/gitlabutil"
 	gu "github.com/miekg/xdoc/gitlabutil"
 	"github.com/xanzy/go-gitlab"
 )
@@ -52,14 +52,20 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	println(proj[0].WebURL)
-	url, _ := url.Parse(proj[0].WebURL)
-	println(url.Path)
-	println(len(proj), "found")
-	files, _ := gu.ListDir(cl, proj[0].ID, *flgDir)
-	log.Printf("%d files found in %q", len(files), url.Path)
-	fmt.Printf("%+v\n", files)
-	for i := range files {
 
+	doc := new(Doc)
+	gl := New()
+	gl.Project = proj[0]
+	gl.Commit = "master" // from options file
+	files, _ := gu.ListDir(cl, gl.Project.ID, *flgDir)
+	fmt.Printf("%d\n", len(files))
+	for i := range files {
+		log.Printf("Downloading %q %s", files[i].Path, files[i].Type)
+		buf, err := gitlabutil.Download(cl, gl.Project.ID, gl.Commit, files[i].Path)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("Adding %q with %d bytes", files[i].Path, len(buf))
+		doc.InsertFile(gl.Project, files[i].Path, buf)
 	}
 }

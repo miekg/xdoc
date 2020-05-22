@@ -1,6 +1,8 @@
 package gitlabutil
 
-import "github.com/xanzy/go-gitlab"
+import (
+	"github.com/xanzy/go-gitlab"
+)
 
 func ListDir(cl *gitlab.Client, pid int, dir string) ([]*gitlab.TreeNode, error) {
 	listopts := gitlab.ListOptions{PerPage: 50, Page: 1}
@@ -12,7 +14,12 @@ func ListDir(cl *gitlab.Client, pid int, dir string) ([]*gitlab.TreeNode, error)
 		if err != nil {
 			return trees, err
 		}
-		trees = append(trees, tree...)
+		for i := range tree {
+			if tree[i].Type == "blob" {
+				trees = append(trees, tree[i])
+			}
+		}
+
 		if resp.CurrentPage >= resp.TotalPages {
 			break
 		}
@@ -22,9 +29,9 @@ func ListDir(cl *gitlab.Client, pid int, dir string) ([]*gitlab.TreeNode, error)
 }
 
 // Download will download a file from gitlab.
-func Download(cl *gitlab.Client, pid int, name string) ([]byte, error) {
-	opts := &gitlab.GetRawFileOptions{}
+func Download(cl *gitlab.Client, pid int, ref, pathname string) ([]byte, error) {
+	opts := &gitlab.GetRawFileOptions{Ref: gitlab.String(ref)}
 
-	data, _, err := cl.RepositoryFiles.GetRawFile(pid, name, opts)
+	data, _, err := cl.RepositoryFiles.GetRawFile(pid, pathname, opts)
 	return data, err
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/url"
-	"path"
 	"sync"
 
 	"github.com/xanzy/go-gitlab"
@@ -17,9 +16,8 @@ const (
 )
 
 type Doc struct {
-	Loc      string            // Where is the markdown stored
-	Projects map[string]GitLab // Basename(URL) -> Project + potential metadata
-	rw       sync.RWMutex      // protects Projects
+	Projects map[string]*GitLab // Basename(URL) -> Project + potential metadata
+	rw       sync.RWMutex       // protects Projects
 }
 
 type GitLab struct {
@@ -27,33 +25,51 @@ type GitLab struct {
 	Commit string // not used yet
 	Lang   string // not used yet
 	Flavor        // not used yet
+	Files  map[string][]byte
 }
 
-// Init initializes d.
-func (d *Doc) Init() {
-	// create tmp dir for where we can download the markdown.
+// New creates a new, initialized pointer to a GitLab.
+func New() *GitLab {
+	return &GitLab{Files: make(map[string][]byte)}
 }
 
 // Insert inserts a new project into d.
 func (d *Doc) Insert(p *gitlab.Project) {
 	d.rw.Lock()
 	defer d.rw.Unlock()
-	url, _ := url.Parse(p.WebURL)
-	d.Projects[url.Path] = GitLab{Project: p, Commit: ""}
+	urlp := ProjectToPath(p)
+	d.Projects[urlp] = &GitLab{Project: p, Commit: ""}
 }
 
 // Fetch will return the project belonging to path. Will return nil if not found.
-func (d *Doc) Fetch(path string) GitLab {
+func (d *Doc) Fetch(path string) *GitLab {
 	d.rw.RLock()
 	defer d.rw.RUnlock()
 	return d.Projects[path]
 }
 
-// FullPath returns the on-disk path for this gitlab project and path.
-func (d *Doc) FullPath(g GitLab, pathname string) string {
-	a := path.Join(d.Loc, ProjectToPath(g.Project))
-	b := path.Join(a, pathname)
-	return b
+func (d *Doc) InsertFile(p *gitlab.Project, pathname string, data []byte) {
+	urlp := ProjectToPath(p)
+	gl := d.Fetch(urlp)
+	if gl == nil {
+		return
+	}
+
+	d.rw.Lock()
+	defer d.rw.Unlock()
+	gl.Files[pathname] = data
+}
+
+func (d *Doc) FetchFile(p *gitlab.Project, pathname string) []byte {
+	urlp := ProjectToPath(p)
+	gl := d.Fetch(urlp)
+	if gl == nil {
+		return nil
+	}
+
+	d.rw.Lock()
+	defer d.rw.Unlock()
+	return gl.Files[pathname]
 }
 
 // ProjectToPath converts a gitlab project to a path that can be used in Fetch.
