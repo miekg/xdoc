@@ -12,7 +12,7 @@ func ListGroups(cl *gitlab.Client) ([]*gitlab.Group, error) {
 	for {
 		grp, resp, err := cl.Groups.ListGroups(opts)
 		if err != nil {
-			return grp, err
+			return groups, err
 		}
 		groups = append(groups, grp...)
 		if resp.CurrentPage >= resp.TotalPages {
@@ -31,7 +31,7 @@ func ListSubgroups(cl *gitlab.Client, gid int) ([]*gitlab.Group, error) {
 	for {
 		grp, resp, err := cl.Groups.ListSubgroups(gid, opts)
 		if err != nil {
-			return grp, err
+			return groups, err
 		}
 		groups = append(groups, grp...)
 		if resp.CurrentPage >= resp.TotalPages {
@@ -50,7 +50,7 @@ func ListProjects(cl *gitlab.Client, gid int) ([]*gitlab.Project, error) {
 	for {
 		proj, resp, err := cl.Groups.ListGroupProjects(gid, opts)
 		if err != nil {
-			return proj, err
+			return projs, err
 		}
 		projs = append(projs, proj...)
 		if resp.CurrentPage >= resp.TotalPages {

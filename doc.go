@@ -29,13 +29,6 @@ type GitLab struct {
 	Flavor        // not used yet
 }
 
-// CopyRawFile copies the raw bytes from gitlab to the local file system.
-func CopyRawFile(g GitLab, pathname string) ([]byte, error) {
-
-	return nil, nil
-
-}
-
 // Init initializes d.
 func (d *Doc) Init() {
 	// create tmp dir for where we can download the markdown.
