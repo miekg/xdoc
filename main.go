@@ -57,5 +57,9 @@ func main() {
 	println(url.Path)
 	println(len(proj), "found")
 	files, _ := gu.ListDir(cl, proj[0].ID, *flgDir)
+	log.Printf("%d files found in %q", len(files), url.Path)
 	fmt.Printf("%+v\n", files)
+	for i := range files {
+
+	}
 }
