@@ -1,45 +1,60 @@
 package main
 
 import (
-	"io"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/ast"
 	"github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"
+	"github.com/mmarkdown/mmark/lang"
 	"github.com/mmarkdown/mmark/mparser"
+	"github.com/mmarkdown/mmark/render/mhtml"
 )
 
-func (d *Doc) render(w http.ResponseWriter, r *http.Request, proj GitLab, path string) {
-	fullpath := d.FullPath(proj, path)
+func (d *Doc) render(w http.ResponseWriter, r *http.Request, proj GitLab, pathname string) {
+	abspath := d.FullPath(proj, pathname)
 
-	renderer := newRendererMmark(fullpath)
+	renderer, doc, err := newRendererMmark(abspath)
+	if err != nil {
+		// write error to w
+		return
+	}
 	x := markdown.Render(doc, renderer)
-	io.WriteString(w, x)
+	w.Write(x)
 }
 
-func newRendererMmark(path string) *markdown.Renderer {
-	init := mparser.NewInitial(path)
+func newRendererMmark(pathname string) (markdown.Renderer, ast.Node, error) {
+	buf, err := ioutil.ReadFile(pathname)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// setup markdown parser
+	init := mparser.NewInitial(pathname)
 	p := parser.NewWithExtensions(mparser.Extensions)
 	parserFlags := parser.FlagsNone
-	parserFlags |= parser.SkipFootnoteList
 	p.Opts = parser.Options{
 		ReadIncludeFn: init.ReadInclude,
 		Flags:         parserFlags,
 	}
 
 	doc := markdown.Parse(buf, p)
+
 	mparser.AddBibliography(doc)
 	mparser.AddIndex(doc)
+
 	mhtmlOpts := mhtml.RendererOptions{
-		Language: lang.New(documentLanguage),
+		Language: lang.New("en"),
 	}
 	opts := html.RendererOptions{
-		Comments:  [][]byte{[]byte("//"), []byte("#")},
-		Flags:     html.CommonFlags | html.FootnoteNoHRTag | html.FootnoteReturnLinks,
-		Generator: `  <meta name="GENERATOR" content="github.com/mmarkdown/mmark Mmark Markdown Processor - mmark.miek.nl`,
+		Comments:       [][]byte{[]byte("//"), []byte("#")},
+		RenderNodeHook: mhtmlOpts.RenderHook,
+		Flags:          html.CommonFlags | html.FootnoteNoHRTag | html.FootnoteReturnLinks,
+		Generator:      `  <meta name="GENERATOR" content="github.com/mmarkdown/mmark Mmark Markdown Processor - mmark.miek.nl`,
 	}
 	opts.Flags |= html.CompletePage
 
-	return html.NewRenderer(opts)
+	return html.NewRenderer(opts), doc, nil
 }

@@ -13,6 +13,7 @@ const DocDir = "docs"
 func main() {
 	base := "https://gitlab.gnome.org"
 	cl := gu.NewClient(base)
+	// do only 1 group.
 	groups, err := gu.ListGroups(cl)
 	if err != nil {
 		log.Fatal(err)

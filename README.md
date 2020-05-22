@@ -25,7 +25,8 @@ markdown flavor used for parsing and which "doc" directory to use (defaults to `
 MUST exist in the master branch of the repository.
 
 ~~~ yaml
-ref: git-reference
+language: LANG
+ref: GIT-REFERENCE
 flavor: mmark|commonmark|gfm
 doc: xdoc
 ~~~

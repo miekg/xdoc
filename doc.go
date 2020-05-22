@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/url"
+	"path"
 	"sync"
 
 	"github.com/xanzy/go-gitlab"
@@ -23,11 +24,15 @@ type Doc struct {
 
 type GitLab struct {
 	*gitlab.Project
-	Commit string // not used, here for future expansion
-	Flavor
+	Commit string // not used yet
+	Lang   string // not used yet
+	Flavor        // not used yet
 }
 
-func ReadFile(g GitLab, path string) ([]byte, error) {
+// CopyRawFile copies the raw bytes from gitlab to the local file system.
+func CopyRawFile(g GitLab, pathname string) ([]byte, error) {
+
+	return nil, nil
 
 }
 
@@ -52,17 +57,14 @@ func (d *Doc) Fetch(path string) GitLab {
 }
 
 // FullPath returns the on-disk path for this gitlab project and path.
-func (d *Doc) FullPath(g GitLab, path string) string {
-	a := fileutil.PathJoin(loc, ProjectToPath(g.Project))
-	b := fileutil.PathJoin(a, path)
+func (d *Doc) FullPath(g GitLab, pathname string) string {
+	a := path.Join(d.Loc, ProjectToPath(g.Project))
+	b := path.Join(a, pathname)
 	return b
 }
 
 // ProjectToPath converts a gitlab project to a path that can be used in Fetch.
-func ProjectToPath(p *gitlab.Project) (string, error) {
-	url, err := url.Parse(p.WebURL)
-	if err != nil {
-		return "", err
-	}
-	return url.Path, nil
+func ProjectToPath(p *gitlab.Project) string {
+	url, _ := url.Parse(p.WebURL)
+	return url.Path
 }
