@@ -14,6 +14,9 @@ import (
 )
 
 func (d *Doc) render(w http.ResponseWriter, r *http.Request, proj GitLab, pathname string) {
+	// if the file doesn't have a .md or .markdown or .txt extension just echo it raw, otherwise
+	// render it.
+
 	renderer, doc, err := newRendererMmark(pathname)
 	if err != nil {
 		// write error to w

@@ -4,6 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
+	"path"
+	"time"
 
 	"github.com/miekg/xdoc/gitlabutil"
 	gu "github.com/miekg/xdoc/gitlabutil"
@@ -65,7 +68,17 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Printf("Adding %q with %d bytes", files[i].Path, len(buf))
+		log.Printf("Adding %q with %d bytes", path.Join(ProjectToPath(gl.Project), files[i].Path), len(buf))
 		doc.InsertFile(gl.Project, files[i].Path, buf)
 	}
+
+	r := doc.setup()
+	srv := &http.Server{
+		Handler:      r,
+		Addr:         "127.0.0.1:8000",
+		WriteTimeout: 5 * time.Second,
+		ReadTimeout:  5 * time.Second,
+	}
+
+	log.Fatal(srv.ListenAndServe())
 }

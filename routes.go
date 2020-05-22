@@ -6,10 +6,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (d *Doc) setup() {
+func (d *Doc) setup() http.Handler {
 	r := mux.NewRouter()
-
-	//
 	r.HandleFunc("/s", func(w http.ResponseWriter, r *http.Request) {
 		// bleve search thing
 	})
@@ -17,20 +15,17 @@ func (d *Doc) setup() {
 		// vars := mux.Vars(r)
 		// bleve search thing
 	})
-	r.HandleFunc("/r/{group}/{subgroup}/{project}", func(w http.ResponseWriter, r *http.Request) {
-		// vars := mux.Vars(r)
+	r.Path("/r/{group}/{project}").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// r/{group}/{subgroup}/{project}/files...
+		// rest may include subgroup, do full search first then
+		vars := mux.Vars(r)
+		group := vars["group"]
+		proj := vars["project"]
+		// subgroup may exist
+		println(group, proj)
+		// r URL to
 		// render index.md
 	})
-	r.HandleFunc("/r/{group}/{subgroup}/{project}/{file}", func(w http.ResponseWriter, r *http.Request) {
-		// vars := mux.Vars(r)
-		// render file from the docs dir
-	})
-	r.HandleFunc("/r/{group}/{project}", func(w http.ResponseWriter, r *http.Request) {
-		// vars := mux.Vars(r)
-		// render index.md
-	})
-	r.HandleFunc("/r/{group}/{project}/{file}", func(w http.ResponseWriter, r *http.Request) {
-		// vars := mux.Vars(r)
-		// render file from the docs dir
-	})
+
+	return r
 }

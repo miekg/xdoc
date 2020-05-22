@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/url"
+	"path"
 	"sync"
 
 	"github.com/xanzy/go-gitlab"
@@ -57,7 +58,8 @@ func (d *Doc) InsertFile(p *gitlab.Project, pathname string, data []byte) {
 
 	d.rw.Lock()
 	defer d.rw.Unlock()
-	gl.Files[pathname] = data
+	full := path.Join(urlp, pathname)
+	gl.Files[full] = data
 }
 
 func (d *Doc) FetchFile(p *gitlab.Project, pathname string) []byte {
@@ -69,7 +71,8 @@ func (d *Doc) FetchFile(p *gitlab.Project, pathname string) []byte {
 
 	d.rw.Lock()
 	defer d.rw.Unlock()
-	return gl.Files[pathname]
+	full := path.Join(urlp, pathname)
+	return gl.Files[full]
 }
 
 // ProjectToPath converts a gitlab project to a path that can be used in Fetch.
