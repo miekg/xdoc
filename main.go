@@ -55,19 +55,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	doc := new(Doc)
-	gl := New()
-	gl.Project = proj[0]
-	gl.Commit = "master" // from options file
-	files, _ := gu.ListDir(cl, gl.Project.ID, *flgDir)
+	doc := New()
+	doc.Insert(proj[0])
+	files, _ := gu.ListDir(cl, proj[0].ID, *flgDir)
 	fmt.Printf("%d\n", len(files))
 	for i := range files {
 		log.Printf("Downloading %q %s", files[i].Path, files[i].Type)
-		buf, err := gitlabutil.Download(cl, gl.Project.ID, gl.Commit, files[i].Path)
+		buf, err := gitlabutil.Download(cl, proj[0].ID, "master", files[i].Path)
 		if err != nil {
 			log.Fatal(err)
 		}
-		doc.InsertFile(gl.Project, files[i].Path, buf)
+		doc.InsertFile(proj[0], files[i].Path, buf)
 	}
 
 	r := doc.setup()

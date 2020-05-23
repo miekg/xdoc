@@ -22,7 +22,7 @@ func (d *Doc) setup() http.Handler {
 		group := vars["group"]
 		proj := vars["project"]
 
-		p := path.Join(group, proj)
+		p := PathToProject(group, proj)
 		gl := d.Fetch(p)
 		if gl == nil {
 			http.Error(w, fmt.Sprintf("project %q: %s", p, http.StatusText(http.StatusNotFound)), http.StatusNotFound)

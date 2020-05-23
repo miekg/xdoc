@@ -6,7 +6,7 @@ import (
 
 func ListDir(cl *gitlab.Client, pid int, dir string) ([]*gitlab.TreeNode, error) {
 	listopts := gitlab.ListOptions{PerPage: 50, Page: 1}
-	opts := &gitlab.ListTreeOptions{ListOptions: listopts, Path: gitlab.String(dir)}
+	opts := &gitlab.ListTreeOptions{ListOptions: listopts, Path: gitlab.String(dir), Recursive: gitlab.Bool(true)}
 
 	trees := []*gitlab.TreeNode{}
 	for {

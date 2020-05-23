@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/url"
 	"path"
 	"path/filepath"
@@ -23,6 +22,10 @@ type Doc struct {
 	rw       sync.RWMutex       // protects Projects
 }
 
+func New() *Doc {
+	return &Doc{Projects: make(map[string]*GitLab), rw: sync.RWMutex{}}
+}
+
 type GitLab struct {
 	*gitlab.Project
 	Commit string // not used yet
@@ -31,17 +34,12 @@ type GitLab struct {
 	Files  map[string][]byte
 }
 
-// New creates a new, initialized pointer to a GitLab.
-func New() *GitLab {
-	return &GitLab{Files: make(map[string][]byte)}
-}
-
 // Insert inserts a new project into d.
 func (d *Doc) Insert(p *gitlab.Project) {
 	d.rw.Lock()
 	defer d.rw.Unlock()
 	urlp := ProjectToPath(p)
-	d.Projects[urlp] = &GitLab{Project: p, Commit: ""}
+	d.Projects[urlp] = &GitLab{Project: p, Commit: "", Files: make(map[string][]byte)}
 }
 
 // Fetch will return the project belonging to path. Will return nil if not found.
@@ -63,7 +61,6 @@ func (d *Doc) InsertFile(p *gitlab.Project, pathname string, buf []byte) {
 	stripped := RemoveFirstPathElement(pathname)
 	full := path.Join(urlp, stripped)
 	gl.Files[full] = buf
-	log.Printf("InsertFile %q with %d bytes", full, len(buf))
 }
 
 func (d *Doc) FetchFile(p *gitlab.Project, pathname string) []byte {
@@ -73,8 +70,8 @@ func (d *Doc) FetchFile(p *gitlab.Project, pathname string) []byte {
 		return nil
 	}
 
-	d.rw.Lock()
-	defer d.rw.Unlock()
+	d.rw.RLock()
+	defer d.rw.RUnlock()
 	full := path.Join(urlp, pathname)
 	return gl.Files[full]
 }
@@ -83,6 +80,12 @@ func (d *Doc) FetchFile(p *gitlab.Project, pathname string) []byte {
 func ProjectToPath(p *gitlab.Project) string {
 	url, _ := url.Parse(p.WebURL)
 	return url.Path
+}
+
+// PathToProject joins the elements and create a project string
+func PathToProject(elem ...string) string {
+	elem = append([]string{"/"}, elem...)
+	return path.Join(elem...)
 }
 
 // RemoveFirstPathElement removes the first element from the path p. This is need to remove the Docs dir from
