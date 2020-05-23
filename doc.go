@@ -52,6 +52,7 @@ func (d *Doc) Fetch(path string) *GitLab {
 func (d *Doc) InsertFile(p *gitlab.Project, pathname string, buf []byte) {
 	urlp := ProjectToPath(p)
 	gl := d.Fetch(urlp)
+	println("urlp", urlp, pathname)
 	if gl == nil {
 		return
 	}
@@ -59,8 +60,10 @@ func (d *Doc) InsertFile(p *gitlab.Project, pathname string, buf []byte) {
 	d.rw.Lock()
 	defer d.rw.Unlock()
 	stripped := RemoveFirstPathElement(pathname)
+	println("stripped", stripped)
 	full := path.Join(urlp, stripped)
 	gl.Files[full] = buf
+	println("full", full)
 }
 
 func (d *Doc) FetchFile(p *gitlab.Project, pathname string) []byte {

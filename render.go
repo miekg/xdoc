@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"path"
 
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/ast"
@@ -13,10 +14,16 @@ import (
 )
 
 func render(w http.ResponseWriter, r *http.Request, buf []byte, pathname string) {
-	// if the file doesn't have a .md or .markdown or .txt extension just echo it raw, otherwise render it?
-	renderer, doc := newRendererMmark(buf, pathname)
-	x := markdown.Render(doc, renderer)
-	w.Write(x)
+	ext := path.Ext(pathname)
+	switch ext {
+	case ".md", ".markdown", ".txt", ".text":
+		renderer, doc := newRendererMmark(buf, pathname)
+		x := markdown.Render(doc, renderer)
+		w.Write(x)
+	default:
+		w.Write(buf)
+	}
+
 }
 
 func newRendererMmark(buf []byte, pathname string) (markdown.Renderer, ast.Node) {

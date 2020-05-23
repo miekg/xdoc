@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"path"
 	"time"
 
 	"github.com/miekg/xdoc/gitlabutil"
@@ -60,7 +61,7 @@ func main() {
 	files, _ := gu.ListDir(cl, proj[0].ID, *flgDir)
 	fmt.Printf("%d\n", len(files))
 	for i := range files {
-		log.Printf("Downloading %q %s", files[i].Path, files[i].Type)
+		log.Printf("Downloading %q %s", path.Join(proj[0].WebURL, files[i].Path), files[i].Type)
 		buf, err := gitlabutil.Download(cl, proj[0].ID, "master", files[i].Path)
 		if err != nil {
 			log.Fatal(err)
