@@ -43,3 +43,5 @@ that is not present in the files themselves.
 
 Re-downloads everything every time. Need to store last commit and retrieve (implement poor man's
 git).
+
+Using a storage abstraction (+memory caching) would be nice.

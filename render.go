@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"net/http"
 
 	"github.com/gomarkdown/markdown"
@@ -13,26 +12,14 @@ import (
 	"github.com/mmarkdown/mmark/render/mhtml"
 )
 
-func (d *Doc) render(w http.ResponseWriter, r *http.Request, proj GitLab, pathname string) {
-	// if the file doesn't have a .md or .markdown or .txt extension just echo it raw, otherwise
-	// render it.
-
-	renderer, doc, err := newRendererMmark(pathname)
-	if err != nil {
-		// write error to w
-		return
-	}
+func render(w http.ResponseWriter, r *http.Request, buf []byte, pathname string) {
+	// if the file doesn't have a .md or .markdown or .txt extension just echo it raw, otherwise render it?
+	renderer, doc := newRendererMmark(buf, pathname)
 	x := markdown.Render(doc, renderer)
 	w.Write(x)
 }
 
-func newRendererMmark(pathname string) (markdown.Renderer, ast.Node, error) {
-	buf, err := ioutil.ReadFile(pathname)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// setup markdown parser
+func newRendererMmark(buf []byte, pathname string) (markdown.Renderer, ast.Node) {
 	init := mparser.NewInitial(pathname)
 	p := parser.NewWithExtensions(mparser.Extensions)
 	parserFlags := parser.FlagsNone
@@ -57,5 +44,5 @@ func newRendererMmark(pathname string) (markdown.Renderer, ast.Node, error) {
 	}
 	opts.Flags |= html.CompletePage
 
-	return html.NewRenderer(opts), doc, nil
+	return html.NewRenderer(opts), doc
 }

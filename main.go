@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"path"
 	"time"
 
 	"github.com/miekg/xdoc/gitlabutil"
@@ -68,7 +67,6 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Printf("Adding %q with %d bytes", path.Join(ProjectToPath(gl.Project), files[i].Path), len(buf))
 		doc.InsertFile(gl.Project, files[i].Path, buf)
 	}
 

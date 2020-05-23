@@ -32,6 +32,6 @@ func ListDir(cl *gitlab.Client, pid int, dir string) ([]*gitlab.TreeNode, error)
 func Download(cl *gitlab.Client, pid int, ref, pathname string) ([]byte, error) {
 	opts := &gitlab.GetRawFileOptions{Ref: gitlab.String(ref)}
 
-	data, _, err := cl.RepositoryFiles.GetRawFile(pid, pathname, opts)
-	return data, err
+	buf, _, err := cl.RepositoryFiles.GetRawFile(pid, pathname, opts)
+	return buf, err
 }
