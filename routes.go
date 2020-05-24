@@ -30,7 +30,7 @@ func (d *Doc) setup() http.Handler {
 		vars := mux.Vars(r)
 		query := bleve.NewMatchQuery(vars["query"])
 		search := bleve.NewSearchRequest(query)
-		results, err := d.Index.Search(search)
+		results, err := d.Index().Search(search)
 		if err != nil {
 			log.Print(err)
 		}
@@ -40,7 +40,7 @@ func (d *Doc) setup() http.Handler {
 	r.HandleFunc("/s/", func(w http.ResponseWriter, r *http.Request) {
 		query := bleve.NewMatchQuery(r.FormValue("q"))
 		search := bleve.NewSearchRequest(query)
-		results, err := d.Index.Search(search)
+		results, err := d.Index().Search(search)
 		if err != nil {
 			log.Print(err)
 		}

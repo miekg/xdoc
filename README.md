@@ -62,3 +62,4 @@ memory.
 * Think about references to files in the xdoc directory; we need to find (rewrite target?) somehow -
   should be done in the markdown renderer or source conventions?
 * Think about references to images, same story as for files?
+* Header/footer and stuff like that.

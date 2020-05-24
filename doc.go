@@ -20,13 +20,14 @@ const (
 )
 
 type Doc struct {
-	Projects map[string]*GitLab // Basename(URL) -> Project + potential metadata
-	bleve.Index
-	rw sync.RWMutex // protects Projects
+	projects map[string]*GitLab // Basename(URL) -> Project + potential metadata
+	i        bleve.Index
+	rw       sync.RWMutex // protects Projects and Index
 }
 
+// New returns a new and initialized pointer to a Doc. Note the Bleve index is not set.
 func New() *Doc {
-	return &Doc{Projects: make(map[string]*GitLab), rw: sync.RWMutex{}}
+	return &Doc{projects: make(map[string]*GitLab), rw: sync.RWMutex{}}
 }
 
 type GitLab struct {
@@ -47,8 +48,10 @@ func (g *GitLab) String() string {
 }
 
 func (d *Doc) String() string {
-	s := fmt.Sprintf("%d Projects\n", len(d.Projects))
-	for _, v := range d.Projects {
+	d.rw.RLock()
+	defer d.rw.RUnlock()
+	s := fmt.Sprintf("%d Projects\n", len(d.projects))
+	for _, v := range d.projects {
 		s += v.String()
 	}
 	return s
@@ -59,14 +62,14 @@ func (d *Doc) Insert(p *gitlab.Project) {
 	d.rw.Lock()
 	defer d.rw.Unlock()
 	urlp := ProjectToPath(p)
-	d.Projects[urlp] = &GitLab{Project: p, Commit: "", Files: make(map[string][]byte)}
+	d.projects[urlp] = &GitLab{Project: p, Commit: "", Files: make(map[string][]byte)}
 }
 
 // Fetch will return the project belonging to path. Will return nil if not found.
 func (d *Doc) Fetch(path string) *GitLab {
 	d.rw.RLock()
 	defer d.rw.RUnlock()
-	return d.Projects[path]
+	return d.projects[path]
 }
 
 func (d *Doc) InsertFile(p *gitlab.Project, pathname string, buf []byte) {
@@ -83,6 +86,7 @@ func (d *Doc) InsertFile(p *gitlab.Project, pathname string, buf []byte) {
 	gl.Files[full] = buf
 }
 
+// FetchFile return the file for p associated with pathname. Pathname must be without the doc dir.
 func (d *Doc) FetchFile(p *gitlab.Project, pathname string) []byte {
 	urlp := ProjectToPath(p)
 	gl := d.Fetch(urlp)
@@ -94,6 +98,20 @@ func (d *Doc) FetchFile(p *gitlab.Project, pathname string) []byte {
 	defer d.rw.RUnlock()
 	full := path.Join(urlp, pathname)
 	return gl.Files[full]
+}
+
+// SetIndex sets the Bleve index in doc.
+func (d *Doc) SetIndex(i bleve.Index) {
+	d.rw.Lock()
+	defer d.rw.Unlock()
+	d.i = i
+}
+
+// Index returns the Bleve index from doc.
+func (d *Doc) Index() bleve.Index {
+	d.rw.RLock()
+	defer d.rw.RUnlock()
+	return d.i
 }
 
 // ProjectToPath converts a gitlab project to a path that can be used in Fetch.
