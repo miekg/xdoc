@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/blevesearch/bleve"
 	"github.com/xanzy/go-gitlab"
 )
 
@@ -20,7 +21,8 @@ const (
 
 type Doc struct {
 	Projects map[string]*GitLab // Basename(URL) -> Project + potential metadata
-	rw       sync.RWMutex       // protects Projects
+	bleve.Index
+	rw sync.RWMutex // protects Projects
 }
 
 func New() *Doc {

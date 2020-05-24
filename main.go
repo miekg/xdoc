@@ -7,6 +7,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/blevesearch/bleve"
 	"github.com/miekg/xdoc/gitlabutil"
 	gu "github.com/miekg/xdoc/gitlabutil"
 	"github.com/xanzy/go-gitlab"
@@ -75,7 +76,28 @@ func main() {
 		doc.InsertFile(proj[0], files[i].Path, buf)
 	}
 
-	log.Println("Downloaded content, starting web server")
+	mapping := bleve.NewIndexMapping()
+	index, err := bleve.NewMemOnly(mapping)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	log.Println("Created index, now indexing")
+	for _, g := range doc.Projects {
+		for k, buf := range g.Files {
+			if err := index.Index(k, string(buf)); err != nil {
+				log.Fatal(err)
+			}
+		}
+
+	}
+	doc.Index = index
+	count, err := index.DocCount()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("Downloaded and indexed %d files, starting web server\n", count)
 
 	r := doc.setup()
 	println(doc.String())

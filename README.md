@@ -10,6 +10,8 @@ It will both render and index these markdown files, the following endpoints are 
 
 * `/s`; exposed the bleve search endpoint.
 * `/s/<query>`; directly search for `<query>`.
+* `/s/?q=<query<`; GET endpoint for the search page, may be hit directly, by `/s/<query>` might be
+  more convenient.
 * `/r/<groupname>/<subgroupname>/<projectname>`; hitting this endpoint will render the `index.md` markdown file.
 * `/r/<groupname>/<subgroupname>/<projectname>/<filename>`; hitting this endpoint will render the `<filename>.md` markdown file.
 * `/r/<groupname>/<projectname>`; hitting this endpoint will render the `index.md` markdown file.
@@ -20,7 +22,7 @@ that.
 
 ## .xdoc.yaml
 
-This YAML file contains various options, such as the git ref used to needs to be retreived, the
+This YAML file contains various options, such as the git ref used to needs to be retrieved, the
 markdown flavor used for parsing and which "doc" directory to use (defaults to `xdoc`). This file
 MUST exist in the master branch of the repository.
 
@@ -52,12 +54,13 @@ that is not present in the files themselves.
 Re-downloads everything every time. Need to store last commit and retrieve (implement poor man's
 git).
 
-Using a storage abstraction (+memory caching) would be nice.
+Using a storage abstraction (+memory caching) would be nice. Right now _everything_ is cached in
+memory.
 
 ## TODO
 
 * Add some basic CSS to each markdown file. We can reference it and serve is from memory as well; use
-  a default project that xdoc owns?
+  a default project that xdoc owns? Probably should live under a `/c/` or `/a/` (assets) route?
 * Think about references to files in the xdoc directory; we need to find (rewrite target?) somehow -
   should be done in the markdown renderer or source conventions?
 * Think about references to images, same story as for files?

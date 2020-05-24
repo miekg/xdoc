@@ -2,22 +2,52 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"path"
 	"strings"
 
+	"github.com/blevesearch/bleve"
 	"github.com/gorilla/mux"
 )
 
 func (d *Doc) setup() http.Handler {
+	// s/ -> search related
+	// r/ -> render related
+	// a/ -> asset related, css etc.
+
 	r := mux.NewRouter()
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+		io.WriteString(w, htmlForm)
+	})
 	r.HandleFunc("/s", func(w http.ResponseWriter, r *http.Request) {
-		// bleve search thing
+		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+		io.WriteString(w, htmlForm)
 	})
 	r.HandleFunc("/s/{query}", func(w http.ResponseWriter, r *http.Request) {
-		// vars := mux.Vars(r)
-		// bleve search thing
+		vars := mux.Vars(r)
+		query := bleve.NewMatchQuery(vars["query"])
+		search := bleve.NewSearchRequest(query)
+		results, err := d.Index.Search(search)
+		if err != nil {
+			log.Print(err)
+		}
+		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+		io.WriteString(w, d.HTML(results))
 	})
+	r.HandleFunc("/s/", func(w http.ResponseWriter, r *http.Request) {
+		query := bleve.NewMatchQuery(r.FormValue("q"))
+		search := bleve.NewSearchRequest(query)
+		results, err := d.Index.Search(search)
+		if err != nil {
+			log.Print(err)
+		}
+		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+		io.WriteString(w, d.HTML(results))
+	})
+
 	r.HandleFunc("/r/{group}/{project}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		group := vars["group"]
@@ -78,6 +108,18 @@ func (d *Doc) setup() http.Handler {
 			return
 		}
 		http.Error(w, fmt.Sprintf("project %q: %s", p, http.StatusText(http.StatusNotFound)), http.StatusNotFound)
+	})
+
+	r.Path("/a/{asset}").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		a := vars["asset"]
+		asset, ok := Assets[a]
+		if !ok {
+			http.Error(w, fmt.Sprintf("asset %q: %s", a, http.StatusText(http.StatusNotFound)), http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Content-Type", asset.contenttype)
+		io.WriteString(w, asset.content)
 	})
 
 	return r
