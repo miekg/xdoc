@@ -59,8 +59,6 @@ memory.
 
 ## TODO
 
-* Add some basic CSS to each markdown file. We can reference it and serve is from memory as well; use
-  a default project that xdoc owns? Probably should live under a `/c/` or `/a/` (assets) route?
 * Think about references to files in the xdoc directory; we need to find (rewrite target?) somehow -
   should be done in the markdown renderer or source conventions?
 * Think about references to images, same story as for files?
