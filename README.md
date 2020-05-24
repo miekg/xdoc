@@ -29,7 +29,7 @@ in the master branch of the repository.
 ~~~ yaml
 lang: LANG
 ref: GIT-REFERENCE
-flavor: mmark|commonmark|gfm
+flavor: mmark|commonmark|gfm|codelab
 ~~~
 
 ## Trying It

@@ -56,11 +56,11 @@ func (d *Doc) String() string {
 }
 
 // Insert inserts a new project into d.
-func (d *Doc) Insert(p *gitlab.Project) {
+func (d *Doc) Insert(p *gitlab.Project, opts Options) {
 	d.rw.Lock()
 	defer d.rw.Unlock()
 	urlp := ProjectToPath(p)
-	d.projects[urlp] = &GitLab{Project: p, Files: make(map[string][]byte)}
+	d.projects[urlp] = &GitLab{Project: p, Options: opts, Files: make(map[string][]byte)}
 }
 
 // Fetch will return the project belonging to path. Will return nil if not found.

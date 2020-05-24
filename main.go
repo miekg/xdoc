@@ -112,7 +112,8 @@ func main() {
 
 func (d *Doc) InsertProjects(cl *gitlab.Client, projs []*gitlab.Project) error {
 	for _, p := range projs {
-		d.Insert(p)
+		opts, _ := ParseOptions(cl, p.ID)
+		d.Insert(p, opts)
 		files, _ := gu.ListDir(cl, p.ID, *flgDir)
 		for i := range files {
 			log.Printf("Downloading %q %s\n", path.Join(p.WebURL, files[i].Path), files[i].Type)
