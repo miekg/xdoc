@@ -1,6 +1,8 @@
 package gitlabutil
 
 import (
+	"fmt"
+
 	"github.com/xanzy/go-gitlab"
 )
 
@@ -21,6 +23,33 @@ func ListGroups(cl *gitlab.Client) ([]*gitlab.Group, error) {
 		opts.Page = resp.NextPage
 	}
 	return groups, nil
+}
+
+func GetGroup(cl *gitlab.Client, group string) ([]*gitlab.Group, error) {
+	listopts := gitlab.ListOptions{PerPage: 50, Page: 1}
+	opts := &gitlab.ListGroupsOptions{Search: gitlab.String(group), ListOptions: listopts}
+
+	groups := []*gitlab.Group{}
+	for {
+		grp, resp, err := cl.Groups.ListGroups(opts)
+		if err != nil {
+			return groups, err
+		}
+		groups = append(groups, grp...)
+		if resp.CurrentPage >= resp.TotalPages {
+			break
+		}
+		opts.Page = resp.NextPage
+	}
+	if len(groups) == 0 {
+		return nil, fmt.Errorf("no groups found")
+	}
+	if len(groups) != 1 {
+		return nil, fmt.Errorf("multiple groups found")
+	}
+
+	grp, _, err := cl.Groups.GetGroup(groups[0].ID)
+	return []*gitlab.Group{grp}, err
 }
 
 func ListSubgroups(cl *gitlab.Client, gid int) ([]*gitlab.Group, error) {

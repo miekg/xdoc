@@ -31,6 +31,14 @@ flavor: mmark|commonmark|gfm
 doc: xdoc
 ~~~
 
+## Trying It
+
+Using the public gitlab.com instance you can run the following:
+
+~~~ sh
+./xdoc -group miekg -base https://gitlab.com -dir xdoc
+~~~
+
 ## Conventions
 
 As markdown is not really expressive rendering a lot of documents in a sane way requires metadata
@@ -45,3 +53,10 @@ Re-downloads everything every time. Need to store last commit and retrieve (impl
 git).
 
 Using a storage abstraction (+memory caching) would be nice.
+
+## TODO
+
+* Add some basic CSS to each markdown file. We can reference it and serve is from memory as well; use
+  a default project that xdoc owns?
+* Think about references to files in the xdoc directory; we need to find (rewrite target?) somehow -
+  should be done in the markdown renderer or source conventions?

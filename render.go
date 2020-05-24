@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"net/http"
 	"path"
+	"time"
 
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/ast"
@@ -19,11 +21,10 @@ func render(w http.ResponseWriter, r *http.Request, buf []byte, pathname string)
 	case ".md", ".markdown", ".txt", ".text":
 		renderer, doc := newRendererMmark(buf, pathname)
 		x := markdown.Render(doc, renderer)
-		w.Write(x)
+		http.ServeContent(w, r, pathname+".html", time.Now().UTC(), bytes.NewReader(x))
 	default:
-		w.Write(buf)
+		http.ServeContent(w, r, pathname, time.Now().UTC(), bytes.NewReader(buf))
 	}
-
 }
 
 func newRendererMmark(buf []byte, pathname string) (markdown.Renderer, ast.Node) {

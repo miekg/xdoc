@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"path"
@@ -16,7 +15,7 @@ import (
 const DocDir = "docs"
 
 var (
-	flgGroup = flag.String("group", "", "select only this group")
+	flgGroup = flag.String("group", "ALL", "select only this group")
 	flgBase  = flag.String("base", "https://gitlab.com", "GitLab site")
 	flgDir   = flag.String("dir", DocDir, "directory to use for documentation")
 )
@@ -25,10 +24,18 @@ func main() {
 	flag.Parse()
 	cl := gu.NewClient(*flgBase)
 
-	groups, err := gu.ListGroups(cl)
-	if err != nil {
-		log.Fatal(err)
+	groups := []*gitlab.Group{}
+	var err error
+	if *flgGroup == "ALL" {
+		if groups, err = gu.ListGroups(cl); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		if groups, err = gu.GetGroup(cl, *flgGroup); err != nil {
+			log.Fatal(err)
+		}
 	}
+
 	if len(groups) == 0 {
 		log.Fatal("No groups found")
 	}
@@ -59,9 +66,8 @@ func main() {
 	doc := New()
 	doc.Insert(proj[0])
 	files, _ := gu.ListDir(cl, proj[0].ID, *flgDir)
-	fmt.Printf("%d\n", len(files))
 	for i := range files {
-		log.Printf("Downloading %q %s", path.Join(proj[0].WebURL, files[i].Path), files[i].Type)
+		log.Printf("Downloading %q %s\n", path.Join(proj[0].WebURL, files[i].Path), files[i].Type)
 		buf, err := gitlabutil.Download(cl, proj[0].ID, "master", files[i].Path)
 		if err != nil {
 			log.Fatal(err)
@@ -69,7 +75,10 @@ func main() {
 		doc.InsertFile(proj[0], files[i].Path, buf)
 	}
 
+	log.Println("Downloaded content, starting web server")
+
 	r := doc.setup()
+	println(doc.String())
 	srv := &http.Server{
 		Handler:      r,
 		Addr:         "127.0.0.1:8000",

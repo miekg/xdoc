@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"path"
-	"path/filepath"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -30,10 +30,9 @@ func (d *Doc) setup() http.Handler {
 			return
 		}
 
-		file := path.Join(p, "index.md")
-		buf := d.FetchFile(gl.Project, file)
+		buf := d.FetchFile(gl.Project, "index.md")
 		if buf == nil {
-			http.Error(w, fmt.Sprintf("file %q: %s", file, http.StatusText(http.StatusNotFound)), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("file %q: %s", "index.md", http.StatusText(http.StatusNotFound)), http.StatusNotFound)
 			return
 		}
 		render(w, r, buf, "index.md")
@@ -49,10 +48,9 @@ func (d *Doc) setup() http.Handler {
 		p := PathToProject(group, proj)
 		gl := d.Fetch(p)
 		if gl != nil {
-			file := path.Join(p, rest)
-			buf := d.FetchFile(gl.Project, file)
+			buf := d.FetchFile(gl.Project, rest)
 			if buf == nil {
-				http.Error(w, fmt.Sprintf("file %q: %s", file, http.StatusText(http.StatusNotFound)), http.StatusNotFound)
+				http.Error(w, fmt.Sprintf("project %q, file %q: %s", p, rest, http.StatusText(http.StatusNotFound)), http.StatusNotFound)
 				return
 			}
 			render(w, r, buf, "index.md")
@@ -61,7 +59,7 @@ func (d *Doc) setup() http.Handler {
 
 		// assume first element of rest is the project and proj is actually a subgroup
 		subgroup := proj
-		el := filepath.SplitList(p) // this works on Linux, but will break on Windows
+		el := strings.Split(p, "/")
 		proj = el[0]
 		rest = RemoveFirstPathElement(p)
 		if rest == "" {
@@ -73,13 +71,12 @@ func (d *Doc) setup() http.Handler {
 			file := path.Join(p, rest)
 			buf := d.FetchFile(gl.Project, file)
 			if buf == nil {
-				http.Error(w, fmt.Sprintf("file %q: %s", file, http.StatusText(http.StatusNotFound)), http.StatusNotFound)
+				http.Error(w, fmt.Sprintf("project %q, file %q: %s", p, file, http.StatusText(http.StatusNotFound)), http.StatusNotFound)
 				return
 			}
 			render(w, r, buf, rest)
 			return
 		}
-		// TODO(miek): this error is too generic for both group and subgroup cases
 		http.Error(w, fmt.Sprintf("project %q: %s", p, http.StatusText(http.StatusNotFound)), http.StatusNotFound)
 	})
 

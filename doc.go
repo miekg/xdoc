@@ -1,9 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"net/url"
 	"path"
-	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/xanzy/go-gitlab"
@@ -34,6 +35,23 @@ type GitLab struct {
 	Files  map[string][]byte
 }
 
+func (g *GitLab) String() string {
+	// strings.Builder ?
+	s := fmt.Sprintf("** %s: %d files\n", g.WebURL, len(g.Files))
+	for k, v := range g.Files {
+		s += "\t" + k + fmt.Sprintf(", %d bytes\n", len(v))
+	}
+	return s
+}
+
+func (d *Doc) String() string {
+	s := fmt.Sprintf("%d Projects\n", len(d.Projects))
+	for _, v := range d.Projects {
+		s += v.String()
+	}
+	return s
+}
+
 // Insert inserts a new project into d.
 func (d *Doc) Insert(p *gitlab.Project) {
 	d.rw.Lock()
@@ -52,7 +70,6 @@ func (d *Doc) Fetch(path string) *GitLab {
 func (d *Doc) InsertFile(p *gitlab.Project, pathname string, buf []byte) {
 	urlp := ProjectToPath(p)
 	gl := d.Fetch(urlp)
-	println("urlp", urlp, pathname)
 	if gl == nil {
 		return
 	}
@@ -60,10 +77,8 @@ func (d *Doc) InsertFile(p *gitlab.Project, pathname string, buf []byte) {
 	d.rw.Lock()
 	defer d.rw.Unlock()
 	stripped := RemoveFirstPathElement(pathname)
-	println("stripped", stripped)
 	full := path.Join(urlp, stripped)
 	gl.Files[full] = buf
-	println("full", full)
 }
 
 func (d *Doc) FetchFile(p *gitlab.Project, pathname string) []byte {
@@ -94,7 +109,7 @@ func PathToProject(elem ...string) string {
 // RemoveFirstPathElement removes the first element from the path p. This is need to remove the Docs dir from
 // the files downloaded from GitLab.
 func RemoveFirstPathElement(p string) string {
-	el := filepath.SplitList(p) // this works on Linux, but will break on Windows
+	el := strings.Split(p, "/")
 	if len(el) == 0 {
 		return ""
 	}
