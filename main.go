@@ -64,6 +64,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// TODO(miek): wrap the stuff below in a loop and do this continuously
 	doc := New()
 	doc.Insert(proj[0])
 	files, _ := gu.ListDir(cl, proj[0].ID, *flgDir)
