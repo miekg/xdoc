@@ -9,4 +9,5 @@ require (
 	github.com/gorilla/mux v1.7.4
 	github.com/mmarkdown/mmark v1.9.983-0.20200512053812-14ad98d8ef54
 	github.com/xanzy/go-gitlab v0.31.0
+	gopkg.in/yaml.v2 v2.2.2
 )

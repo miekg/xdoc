@@ -32,10 +32,8 @@ func New() *Doc {
 
 type GitLab struct {
 	*gitlab.Project
-	Commit string // not used yet
-	Lang   string // not used yet
-	Flavor        // not used yet
-	Files  map[string][]byte
+	Options
+	Files map[string][]byte
 }
 
 func (g *GitLab) String() string {
@@ -62,7 +60,7 @@ func (d *Doc) Insert(p *gitlab.Project) {
 	d.rw.Lock()
 	defer d.rw.Unlock()
 	urlp := ProjectToPath(p)
-	d.projects[urlp] = &GitLab{Project: p, Commit: "", Files: make(map[string][]byte)}
+	d.projects[urlp] = &GitLab{Project: p, Files: make(map[string][]byte)}
 }
 
 // Fetch will return the project belonging to path. Will return nil if not found.

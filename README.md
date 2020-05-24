@@ -22,15 +22,14 @@ that.
 
 ## .xdoc.yaml
 
-This YAML file contains various options, such as the git ref used to needs to be retrieved, the
-markdown flavor used for parsing and which "doc" directory to use (defaults to `xdoc`). This file
-MUST exist in the master branch of the repository.
+This YAML file contains various options, such as the Git ref used to needs to be retrieved, the
+markdown flavor used for parsing and in which language the pages are written. This file MUST exist
+in the master branch of the repository.
 
 ~~~ yaml
-language: LANG
+lang: LANG
 ref: GIT-REFERENCE
 flavor: mmark|commonmark|gfm
-doc: xdoc
 ~~~
 
 ## Trying It
@@ -38,7 +37,7 @@ doc: xdoc
 Using the public gitlab.com instance you can run the following:
 
 ~~~ sh
-./xdoc -group miekg -base https://gitlab.com -dir xdoc
+./xdoc -group miekg -gitlab https://gitlab.com -dir xdoc
 ~~~
 
 ## Conventions
