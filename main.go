@@ -19,10 +19,11 @@ import (
 const DocDir = "docs"
 
 var (
-	flgGroup = flag.String("group", "", "select only this group")
-	flgBase  = flag.String("base", "https://gitlab.com", "GitLab site")
-	flgDir   = flag.String("dir", DocDir, "directory to use for documentation")
-	flgInt   = flag.Duration("int", 10*time.Minute, "duration to sleep before restarting the download loop")
+	flgGroup  = flag.String("group", "", "select only this group")
+	flgBase   = flag.String("base", "", "base URL to add")
+	flgGitlab = flag.String("gitlab", "https://gitlab.com", "GitLab site")
+	flgDir    = flag.String("dir", DocDir, "directory to use for documentation")
+	flgInt    = flag.Duration("int", 10*time.Minute, "duration to sleep before restarting the download loop")
 )
 
 func main() {
@@ -31,7 +32,7 @@ func main() {
 		log.Fatal("-group need a value")
 	}
 
-	cl := gu.NewClient(*flgBase)
+	cl := gu.NewClient(*flgGitlab)
 	// all this group stuff is here to support multiple group, the POC won't do this (yet).
 	groups, err := gu.GetGroup(cl, *flgGroup)
 	if err != nil {
