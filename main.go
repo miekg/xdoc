@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"sync"
 	"syscall"
 	"time"
 
@@ -24,6 +25,7 @@ var (
 	flgGitlab = flag.String("gitlab", "https://gitlab.com", "GitLab site")
 	flgDir    = flag.String("dir", DocDir, "directory to use for documentation")
 	flgInt    = flag.Duration("int", 10*time.Minute, "duration to sleep before restarting the download loop")
+	flgWorker = flag.Uint("worker", 10, "number of concurrent worker to download from gitlab")
 )
 
 func main() {
@@ -110,20 +112,67 @@ func main() {
 	}
 }
 
+type downloadItem struct {
+	project  *gitlab.Project
+	ref      string
+	filename string
+}
+
+type downloadResult struct {
+	project  *gitlab.Project
+	filename string
+	buf      []byte
+	err      error
+}
+
+func downloadWorker(cl *gitlab.Client, work <-chan downloadItem, result chan<- downloadResult) {
+	for w := range work {
+		buf, err := gitlabutil.Download(cl, w.project.ID, w.ref, w.filename)
+		result <- downloadResult{w.project, w.filename, buf, err}
+	}
+	log.Printf("Goroutine download worker shutting down")
+}
+
 func (d *Doc) InsertProjects(cl *gitlab.Client, projs []*gitlab.Project) error {
+
+	work := make(chan downloadItem, *flgWorker)
+	result := make(chan downloadResult, *flgWorker)
+	stop := make(chan struct{})
+	var wg sync.WaitGroup
+	for i := 0; i < int(*flgWorker); i++ {
+		go downloadWorker(cl, work, result)
+	}
+
+	go func() {
+		for {
+			select {
+			case r := <-result:
+				if r.err != nil {
+					log.Printf("Error when downloading %q: %s", r.filename, r.err)
+					continue
+				}
+				d.InsertFile(r.project, r.filename, r.buf)
+				wg.Done()
+
+			case <-stop:
+				return
+			}
+		}
+	}()
+
 	for _, p := range projs {
 		opts, _ := ParseOptions(cl, p.ID)
 		d.Insert(p, opts)
 		files, _ := gu.ListDir(cl, p.ID, *flgDir)
+		wg.Add(len(files))
 		for i := range files {
 			log.Printf("Downloading %q %s\n", path.Join(p.WebURL, files[i].Path), files[i].Type)
-			buf, err := gitlabutil.Download(cl, p.ID, "master", files[i].Path)
-			if err != nil {
-				return err
-			}
-			d.InsertFile(p, files[i].Path, buf)
+			work <- downloadItem{p, "master", files[i].Path}
 		}
 	}
+	close(work)
+	wg.Wait()
+	close(stop)
 
 	mapping := bleve.NewIndexMapping()
 	index, err := bleve.NewMemOnly(mapping)

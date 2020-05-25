@@ -22,5 +22,8 @@ func ParseOptions(cl *gitlab.Client, pid int) (Options, error) {
 	if err := yaml.Unmarshal(buf, &opt); err != nil {
 		return opt, err
 	}
+	if opt.Ref == "" {
+		opt.Ref = "master"
+	}
 	return opt, nil
 }
