@@ -161,7 +161,7 @@ func (d *Doc) InsertProjects(cl *gitlab.Client, projs []*gitlab.Project) error {
 	}()
 
 	for _, p := range projs {
-		opts, _ := ParseOptions(cl, p.ID)
+		opts, _ := ParseOptions(cl, p)
 		d.Insert(p, opts)
 		files, _ := gu.ListDir(cl, p.ID, *flgDir)
 		wg.Add(len(files))
