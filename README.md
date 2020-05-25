@@ -4,7 +4,7 @@ xDoc will traverse all of GitLab -- groups/subgroups and projects that it has ac
 look in each repository for:
 
 * a top-level file named `.xdoc.yaml` that allows for setting some scrape (and other) options.
-* a directory named xdoc (TBD: make this an option)
+* a directory named xdoc (see the `-dir` option)
 
 It will both render and index these markdown files, the following endpoints are available:
 
