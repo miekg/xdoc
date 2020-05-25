@@ -62,3 +62,4 @@ memory.
   should be done in the markdown renderer or source conventions?
 * Think about references to images, same story as for files?
 * Header/footer and stuff like that.
+* Add codelab support, integrate 'claat' or just use the bits for parsing.
